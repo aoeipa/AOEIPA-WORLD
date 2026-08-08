@@ -1,0 +1,1286 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AOEIPA WORLD</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+  background: #07101b;
+  color: white;
+  font-family: Arial, sans-serif;
+}
+
+.screen {
+  display: none;
+  width: 100vw;
+  height: 100vh;
+}
+
+.screen.active {
+  display: block;
+}
+
+/* =========================
+   HOME
+========================= */
+
+#home {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background:
+    radial-gradient(circle at center, #21496d 0%, #07101b 65%);
+}
+
+#home.active {
+  display: flex;
+}
+
+.home-box {
+  width: min(850px, 90vw);
+  padding: 35px;
+  border: 1px solid #3c607d;
+  border-radius: 24px;
+  background: rgba(10, 22, 36, 0.9);
+  box-shadow: 0 20px 60px rgba(0,0,0,.5);
+}
+
+.logo {
+  font-size: clamp(42px, 9vw, 80px);
+  font-weight: 1000;
+  letter-spacing: 4px;
+}
+
+.subtitle {
+  opacity: .7;
+  margin-bottom: 30px;
+}
+
+button {
+  border: none;
+  border-radius: 12px;
+  padding: 12px 18px;
+  margin: 5px;
+  color: white;
+  background: #294866;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+button:hover {
+  filter: brightness(1.25);
+  transform: translateY(-1px);
+}
+
+.start-button {
+  font-size: 20px;
+  padding: 15px 30px;
+}
+
+/* =========================
+   GAME
+========================= */
+
+#game {
+  position: relative;
+  background:
+    radial-gradient(circle, #183047 1px, transparent 2px) 0 0 / 34px 34px;
+}
+
+#gameField {
+  position: absolute;
+  inset: 0;
+}
+
+.hud {
+  position: absolute;
+  z-index: 20;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.badge {
+  padding: 9px 12px;
+  border-radius: 10px;
+  background: rgba(10,20,32,.9);
+  border: 1px solid #35516e;
+  font-weight: bold;
+}
+
+/* =========================
+   PLAYER / ENEMY
+========================= */
+
+.entity {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  user-select: none;
+  pointer-events: none;
+}
+
+.player {
+  font-size: 48px;
+  z-index: 10;
+}
+
+.zombie {
+  font-size: 38px;
+}
+
+.boss {
+  font-size: 58px;
+}
+
+.bullet {
+  font-size: 18px;
+}
+
+/* =========================
+   TOAST
+========================= */
+
+#toast {
+  position: absolute;
+  z-index: 100;
+  left: 50%;
+  top: 18%;
+  transform: translate(-50%, -50%) scale(.8);
+  opacity: 0;
+  padding: 14px 20px;
+  border-radius: 15px;
+  border: 2px solid #65d7ff;
+  background: rgba(10,20,32,.95);
+  font-weight: bold;
+  transition: .15s;
+}
+
+#toast.show {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* =========================
+   ADMIN
+========================= */
+
+.overlay {
+  position: absolute;
+  z-index: 200;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,.82);
+}
+
+.overlay.active {
+  display: flex;
+}
+
+.panel {
+  width: min(850px, 92vw);
+  padding: 25px;
+  border-radius: 20px;
+  background: #101b2c;
+  border: 2px solid #ffd84a;
+}
+
+.admin-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+@media(max-width:650px) {
+  .admin-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<!-- =========================
+     HOME
+========================= -->
+
+<section id="home" class="screen active">
+
+  <div class="home-box">
+
+    <div class="logo">
+      AOEIPA WORLD
+    </div>
+
+    <div class="subtitle">
+      ORIGINAL SURVIVAL GAME
+    </div>
+
+    <button class="start-button" onclick="startGame()">
+      ▶ GAMEPLAY START
+    </button>
+
+    <br>
+
+    <button onclick="changeSkin()">
+      👕 SKIN CHANGE
+    </button>
+
+    <button onclick="showRanking()">
+      🏆 RANKING
+    </button>
+
+    <p id="skinText">
+      現在のスキン：🧑
+    </p>
+
+  </div>
+
+</section>
+
+
+<!-- =========================
+     GAMEPLAY
+========================= -->
+
+<section id="game" class="screen">
+
+  <div class="hud">
+
+    <div class="badge" id="day">
+      DAY 1
+    </div>
+
+    <div class="badge" id="hp">
+      ❤️ 100
+    </div>
+
+    <div class="badge" id="kills">
+      💀 0
+    </div>
+
+    <div class="badge" id="danger">
+      ⚠️ ★☆☆☆☆
+    </div>
+
+    <button onclick="openAdmin()">
+      👑 ADMIN
+    </button>
+
+    <button onclick="goHome()">
+      🏠 HOME
+    </button>
+
+  </div>
+
+  <div id="gameField">
+
+    <div id="player"
+         class="entity player">
+      🧑
+    </div>
+
+  </div>
+
+  <div id="toast"></div>
+
+</section>
+
+
+<!-- =========================
+     ADMIN
+========================= -->
+
+<div id="adminPanel"
+     class="overlay">
+
+  <div class="panel">
+
+    <h2>👑 ADMIN CONTROL</h2>
+
+    <div class="admin-grid">
+
+      <button onclick="spawnZombie(5)">
+        🧟 ZOMBIE ×5
+      </button>
+
+      <button onclick="spawnZombie(20)">
+        🧟 HORDE ×20
+      </button>
+
+      <button onclick="spawnBoss()">
+        👹 BOSS
+      </button>
+
+      <button onclick="clearEnemies()">
+        💥 CLEAR
+      </button>
+
+      <button onclick="healPlayer()">
+        ❤️ HEAL
+      </button>
+
+      <button onclick="increaseDay()">
+        📅 DAY +1
+      </button>
+
+      <button onclick="adminEvent()">
+        🌎 ADMIN EVENT
+      </button>
+
+      <button onclick="toggleAutoAttack()">
+        🎯 AUTO ATTACK
+      </button>
+
+      <button onclick="closeAdmin()">
+        ❌ CLOSE
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- =========================
+     RANKING
+========================= -->
+
+<div id="rankingPanel"
+     class="overlay">
+
+  <div class="panel">
+
+    <h2>🏆 SURVIVAL RANKING</h2>
+
+    <p>🥇 AOEIPA Admin — 127日</p>
+    <p>🥈 Survivor — 113日</p>
+    <p>🥉 Zombie Hunter — 98日</p>
+
+    <button onclick="closeRanking()">
+      CLOSE
+    </button>
+
+  </div>
+
+</div>
+
+
+<script>
+
+/* =================================
+   GAME DATA
+================================= */
+
+const skins = [
+  "🧑",
+  "🧑‍🚀",
+  "🥷",
+  "🤖",
+  "🧙",
+  "👽"
+];
+
+let skinIndex = 0;
+
+let gameRunning = false;
+
+let day = 1;
+
+let hp = 100;
+
+let kills = 0;
+
+let autoAttack = true;
+
+let enemies = [];
+
+let bullets = [];
+
+let lastTime = 0;
+
+let dayTimer = 0;
+
+
+/* =================================
+   ELEMENTS
+================================= */
+
+const home =
+  document.getElementById("home");
+
+const game =
+  document.getElementById("game");
+
+const gameField =
+  document.getElementById("gameField");
+
+const player =
+  document.getElementById("player");
+
+
+/* =================================
+   TOAST
+================================= */
+
+function toast(message) {
+
+  const box =
+    document.getElementById("toast");
+
+  box.textContent = message;
+
+  box.classList.add("show");
+
+  clearTimeout(window.toastTimer);
+
+  window.toastTimer =
+    setTimeout(() => {
+
+      box.classList.remove("show");
+
+    }, 1000);
+}
+
+
+/* =================================
+   SKIN
+================================= */
+
+function changeSkin() {
+
+  skinIndex++;
+
+  if (skinIndex >= skins.length) {
+    skinIndex = 0;
+  }
+
+  const skin =
+    skins[skinIndex];
+
+  player.textContent = skin;
+
+  document.getElementById(
+    "skinText"
+  ).textContent =
+    "現在のスキン：" + skin;
+
+  toast("👕 SKIN CHANGED");
+}
+
+
+/* =================================
+   START
+================================= */
+
+function startGame() {
+
+  gameRunning = true;
+
+  day = 1;
+
+  hp = 100;
+
+  kills = 0;
+
+  clearEnemies();
+
+  bullets.forEach(
+    bullet => bullet.element.remove()
+  );
+
+  bullets = [];
+
+  home.classList.remove("active");
+
+  game.classList.add("active");
+
+  player.textContent =
+    skins[skinIndex];
+
+  positionPlayer();
+
+  toast("🎮 SURVIVAL START");
+
+}
+
+
+/* =================================
+   HOME
+================================= */
+
+function goHome() {
+
+  gameRunning = false;
+
+  clearEnemies();
+
+  bullets.forEach(
+    bullet => bullet.element.remove()
+  );
+
+  bullets = [];
+
+  game.classList.remove("active");
+
+  home.classList.add("active");
+
+}
+
+
+/* =================================
+   PLAYER POSITION
+================================= */
+
+function positionPlayer() {
+
+  player.style.left =
+    innerWidth / 2 + "px";
+
+  player.style.top =
+    innerHeight / 2 + "px";
+
+}
+
+window.addEventListener(
+  "resize",
+  positionPlayer
+);
+
+
+/* =================================
+   PLAYER MOVE
+================================= */
+
+window.addEventListener(
+  "keydown",
+  event => {
+
+    if (!gameRunning) return;
+
+    let x =
+      parseFloat(player.style.left);
+
+    let y =
+      parseFloat(player.style.top);
+
+    const speed = 25;
+
+    if (
+      event.key === "ArrowLeft" ||
+      event.key === "a"
+    ) {
+      x -= speed;
+    }
+
+    if (
+      event.key === "ArrowRight" ||
+      event.key === "d"
+    ) {
+      x += speed;
+    }
+
+    if (
+      event.key === "ArrowUp" ||
+      event.key === "w"
+    ) {
+      y -= speed;
+    }
+
+    if (
+      event.key === "ArrowDown" ||
+      event.key === "s"
+    ) {
+      y += speed;
+    }
+
+    x =
+      Math.max(
+        30,
+        Math.min(innerWidth - 30, x)
+      );
+
+    y =
+      Math.max(
+        80,
+        Math.min(innerHeight - 30, y)
+      );
+
+    player.style.left =
+      x + "px";
+
+    player.style.top =
+      y + "px";
+
+  }
+);
+
+
+/* =================================
+   ENEMY
+================================= */
+
+function createEnemy(isBoss = false) {
+
+  const element =
+    document.createElement("div");
+
+  element.className =
+    "entity " +
+    (isBoss ? "boss" : "zombie");
+
+  element.textContent =
+    isBoss ? "👹" : "🧟";
+
+  gameField.appendChild(element);
+
+  const side =
+    Math.floor(Math.random() * 4);
+
+  let x;
+  let y;
+
+  if (side === 0) {
+
+    x = Math.random() * innerWidth;
+    y = 80;
+
+  } else if (side === 1) {
+
+    x = innerWidth - 20;
+    y = Math.random() * innerHeight;
+
+  } else if (side === 2) {
+
+    x = Math.random() * innerWidth;
+    y = innerHeight - 20;
+
+  } else {
+
+    x = 20;
+    y = Math.random() * innerHeight;
+
+  }
+
+  const enemy = {
+
+    element,
+
+    x,
+
+    y,
+
+    hp:
+      isBoss ? 300 : 40,
+
+    speed:
+      isBoss ? 25 : 40,
+
+    boss:
+      isBoss
+
+  };
+
+  enemies.push(enemy);
+
+  renderEnemy(enemy);
+
+}
+
+
+/* =================================
+   SPAWN
+================================= */
+
+function spawnZombie(amount) {
+
+  for (
+    let i = 0;
+    i < amount;
+    i++
+  ) {
+
+    createEnemy(false);
+
+  }
+
+  toast(
+    "🧟 ZOMBIE ×" + amount
+  );
+
+}
+
+
+function spawnBoss() {
+
+  createEnemy(true);
+
+  toast("👹 BOSS ARRIVED");
+
+}
+
+
+/* =================================
+   RENDER ENEMY
+================================= */
+
+function renderEnemy(enemy) {
+
+  enemy.element.style.left =
+    enemy.x + "px";
+
+  enemy.element.style.top =
+    enemy.y + "px";
+
+}
+
+
+/* =================================
+   CLEAR
+================================= */
+
+function clearEnemies() {
+
+  enemies.forEach(
+    enemy => enemy.element.remove()
+  );
+
+  enemies = [];
+
+}
+
+
+/* =================================
+   HEAL
+================================= */
+
+function healPlayer() {
+
+  hp = 100;
+
+  toast("❤️ FULL HEAL");
+
+}
+
+
+/* =================================
+   DAY
+================================= */
+
+function increaseDay() {
+
+  day++;
+
+  toast(
+    "📅 DAY " + day
+  );
+
+}
+
+
+/* =================================
+   ADMIN EVENT
+================================= */
+
+function adminEvent() {
+
+  for (
+    let i = 0;
+    i < 30;
+    i++
+  ) {
+
+    createEnemy(false);
+
+  }
+
+  toast(
+    "🌎 ADMIN EVENT!"
+  );
+
+}
+
+
+/* =================================
+   AUTO ATTACK
+================================= */
+
+function toggleAutoAttack() {
+
+  autoAttack =
+    !autoAttack;
+
+  toast(
+    autoAttack
+      ? "🎯 AUTO ATTACK ON"
+      : "⛔ AUTO ATTACK OFF"
+  );
+
+}
+
+
+/* =================================
+   NEAREST ENEMY
+================================= */
+
+function getNearestEnemy() {
+
+  const px =
+    parseFloat(player.style.left);
+
+  const py =
+    parseFloat(player.style.top);
+
+  let nearest = null;
+
+  let nearestDistance =
+    Infinity;
+
+  for (
+    const enemy of enemies
+  ) {
+
+    const distance =
+      Math.hypot(
+        enemy.x - px,
+        enemy.y - py
+      );
+
+    if (
+      distance <
+      nearestDistance
+    ) {
+
+      nearest =
+        enemy;
+
+      nearestDistance =
+        distance;
+
+    }
+
+  }
+
+  return nearest;
+
+}
+
+
+/* =================================
+   SHOOT
+================================= */
+
+function shoot(enemy) {
+
+  const element =
+    document.createElement("div");
+
+  element.className =
+    "entity bullet";
+
+  element.textContent =
+    "⚡";
+
+  gameField.appendChild(
+    element
+  );
+
+  bullets.push({
+
+    element,
+
+    x:
+      parseFloat(
+        player.style.left
+      ),
+
+    y:
+      parseFloat(
+        player.style.top
+      ),
+
+    target:
+      enemy
+
+  });
+
+}
+
+
+/* =================================
+   UPDATE
+================================= */
+
+function update(delta) {
+
+  if (!gameRunning) {
+    return;
+  }
+
+  if (autoAttack) {
+
+    const target =
+      getNearestEnemy();
+
+    if (
+      target &&
+      !window.shootCooldown
+    ) {
+
+      shoot(target);
+
+      window.shootCooldown =
+        true;
+
+      setTimeout(
+        () => {
+          window.shootCooldown =
+            false;
+        },
+        550
+      );
+
+    }
+
+  }
+
+
+  const px =
+    parseFloat(player.style.left);
+
+  const py =
+    parseFloat(player.style.top);
+
+
+  /* ENEMY MOVEMENT */
+
+  for (
+    const enemy of enemies
+  ) {
+
+    const dx =
+      px - enemy.x;
+
+    const dy =
+      py - enemy.y;
+
+    const distance =
+      Math.hypot(dx, dy) || 1;
+
+    enemy.x +=
+      (dx / distance) *
+      enemy.speed *
+      delta;
+
+    enemy.y +=
+      (dy / distance) *
+      enemy.speed *
+      delta;
+
+    renderEnemy(enemy);
+
+
+    if (distance < 42) {
+
+      hp -=
+        10 * delta;
+
+    }
+
+  }
+
+
+  /* BULLETS */
+
+  for (
+    let i = bullets.length - 1;
+    i >= 0;
+    i--
+  ) {
+
+    const bullet =
+      bullets[i];
+
+    const target =
+      bullet.target;
+
+    if (
+      !enemies.includes(target)
+    ) {
+
+      bullet.element.remove();
+
+      bullets.splice(i, 1);
+
+      continue;
+
+    }
+
+
+    const dx =
+      target.x - bullet.x;
+
+    const dy =
+      target.y - bullet.y;
+
+    const distance =
+      Math.hypot(dx, dy) || 1;
+
+
+    bullet.x +=
+      (dx / distance) *
+      600 *
+      delta;
+
+    bullet.y +=
+      (dy / distance) *
+      600 *
+      delta;
+
+
+    bullet.element.style.left =
+      bullet.x + "px";
+
+    bullet.element.style.top =
+      bullet.y + "px";
+
+
+    if (
+      distance < 25
+    ) {
+
+      target.hp -= 10;
+
+      bullet.element.remove();
+
+      bullets.splice(i, 1);
+
+
+      if (
+        target.hp <= 0
+      ) {
+
+        target.element.remove();
+
+        const index =
+          enemies.indexOf(
+            target
+          );
+
+        if (
+          index !== -1
+        ) {
+
+          enemies.splice(
+            index,
+            1
+          );
+
+        }
+
+        kills++;
+
+      }
+
+    }
+
+  }
+
+
+  /* DAY */
+
+  dayTimer += delta;
+
+  if (
+    dayTimer >= 20
+  ) {
+
+    day++;
+
+    dayTimer = 0;
+
+    toast(
+      "📅 DAY " + day
+    );
+
+  }
+
+
+  /* NATURAL SPAWN */
+
+  const maxEnemies =
+    Math.min(
+      40,
+      4 + day * 2
+    );
+
+  if (
+    enemies.length <
+    maxEnemies
+  ) {
+
+    createEnemy(false);
+
+  }
+
+
+  /* GAME OVER */
+
+  if (
+    hp <= 0
+  ) {
+
+    hp = 0;
+
+    gameRunning =
+      false;
+
+    toast(
+      "💀 GAME OVER"
+    );
+
+    setTimeout(
+      goHome,
+      1500
+    );
+
+  }
+
+
+  /* HUD */
+
+  document.getElementById(
+    "day"
+  ).textContent =
+    "DAY " + day;
+
+  document.getElementById(
+    "hp"
+  ).textContent =
+    "❤️ " +
+    Math.ceil(hp);
+
+  document.getElementById(
+    "kills"
+  ).textContent =
+    "💀 " +
+    kills;
+
+
+  const danger =
+    Math.min(
+      5,
+      Math.ceil(day / 3)
+    );
+
+  document.getElementById(
+    "danger"
+  ).textContent =
+    "⚠️ " +
+    "★".repeat(danger) +
+    "☆".repeat(5 - danger);
+
+}
+
+
+/* =================================
+   ADMIN
+================================= */
+
+function openAdmin() {
+
+  document
+    .getElementById(
+      "adminPanel"
+    )
+    .classList.add("active");
+
+}
+
+
+function closeAdmin() {
+
+  document
+    .getElementById(
+      "adminPanel"
+    )
+    .classList.remove("active");
+
+}
+
+
+/* =================================
+   RANKING
+================================= */
+
+function showRanking() {
+
+  document
+    .getElementById(
+      "rankingPanel"
+    )
+    .classList.add("active");
+
+}
+
+
+function closeRanking() {
+
+  document
+    .getElementById(
+      "rankingPanel"
+    )
+    .classList.remove("active");
+
+}
+
+
+/* =================================
+   GAME LOOP
+================================= */
+
+function gameLoop(time) {
+
+  const delta =
+    Math.min(
+      0.05,
+      (time - lastTime) / 1000 || 0
+    );
+
+  lastTime = time;
+
+  update(delta);
+
+  requestAnimationFrame(
+    gameLoop
+  );
+
+}
+
+requestAnimationFrame(
+  gameLoop
+);
+
+
+/* INITIAL POSITION */
+
+positionPlayer();
+
+</script>
+
+</body>
+</html>
